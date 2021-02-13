@@ -1,8 +1,11 @@
 ### Required Libraries ###
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import math
 
 ### Functionality Helper Functions ###
+
+
 def parse_int(n):
     """
     Securely converts a non-integer value to integer.
@@ -85,31 +88,51 @@ def recommend_portfolio(intent_request):
     """
     Performs dialog management and fulfillment for recommending a portfolio.
     """
-
     first_name = get_slots(intent_request)["firstName"]
     age = get_slots(intent_request)["age"]
     investment_amount = get_slots(intent_request)["investmentAmount"]
     risk_level = get_slots(intent_request)["riskLevel"]
     source = intent_request["invocationSource"]
 
+    initial_recommendation = "Don't invest with us..."
+
     if source == "DialogCodeHook":
         # Perform basic validation on the supplied input slots.
         # Use the elicitSlot dialog action to re-prompt
         # for the first violation detected.
 
-        ### YOUR DATA VALIDATION CODE STARTS HERE ###
-
-        ### YOUR DATA VALIDATION CODE ENDS HERE ###
-
         # Fetch current session attibutes
         output_session_attributes = intent_request["sessionAttributes"]
+        if parse_int(age) > 65 or parse_int(age) < 1:
+            return elicit_slot(intent_request["sessionAttributes"],
+                               intent_request["currentIntent"]["name"],
+                               get_slots(intent_request), 0,
+                               "Please select a valid age")
+            return delegate(output_session_attributes, get_slots(intent_request))
 
-        return delegate(output_session_attributes, get_slots(intent_request))
+        if parse_int(investment_amount) < 5000:
+            return elicit_slot(intent_request["sessionAttributes"],
+                               intent_request["currentIntent"]["name"],
+                               get_slots(intent_request), 0,
+                               "Please choose an investment of 5000 or more")
+            return delegate(output_session_attributes, get_slots(intent_request))
+
+        ### YOUR DATA VALIDATION CODE ENDS HERE ###
 
     # Get the initial investment recommendation
 
     ### YOUR FINAL INVESTMENT RECOMMENDATION CODE STARTS HERE ###
+    recommendation_dictinary = {
+        "None": "100% bonds (AGG), 0% equities (SPY)",
+        "Very Low": "80% bonds (AGG), 20% equities (SPY)",
+        "Low": "60% bonds (AGG), 40% equities (SPY)",
+        "Medium": "40% bonds (AGG), 60% equities (SPY)",
+        "High": "20% bonds (AGG), 80% equities (SPY)",
+        "Very High": "0% bonds (AGG), 100% equities (SPY)"
+    }
 
+    initial_recommendation = recommendation_dictinary[risk_level]
+    # print(initial_recommendation)
     ### YOUR FINAL INVESTMENT RECOMMENDATION CODE ENDS HERE ###
 
     # Return a message with the initial recommendation based on the risk level.
